@@ -1,0 +1,66 @@
+name: Run Autograder
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      due_date:
+        description: 'ISO due date (e.g. 2025-10-14T23:59:59Z). If empty, default inside script is used.'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (if any)
+        run: |
+          echo "No npm install required for grader."
+
+      - name: Determine due date
+        id: due
+        run: |
+          if [ -n "${{ github.event.inputs.due_date }}" ]; then
+            echo "Using workflow input due_date: ${{ github.event.inputs.due_date }}"
+            echo "DUE_DATE=${{ github.event.inputs.due_date }}" >> $GITHUB_ENV
+          else
+            DEFAULT_DUE='2025-10-15T20:59:00Z' # 2025-10-15 11:59 PM Riyadh time
+            echo "Using default due date: $DEFAULT_DUE"
+            echo "DUE_DATE=$DEFAULT_DUE" >> $GITHUB_ENV
+          fi
+
+      - name: Run autograder script
+        env:
+          DUE_DATE: ${{ env.DUE_DATE }}
+        run: |
+          echo "Running grader..."
+          node 5-6-react-styling-fetch-data/script/grade.cjs
+
+      - name: Show feedback (first 200 lines)
+        if: always()
+        run: |
+          echo "=== feedback.txt ==="
+          head -n 200 5-6-react-styling-fetch-data/script/feedback.txt || true
+
+      - name: Upload feedback artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autograder-feedback
+          path: |
+            5-6-react-styling-fetch-data/script/feedback.txt
+            5-6-react-styling-fetch-data/script/grade.json

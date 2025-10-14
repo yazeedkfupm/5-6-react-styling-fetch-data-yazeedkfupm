@@ -1,0 +1,55 @@
+/* Custom CSS Variables */
+:root {
+  
+}
+
+/* Custom Styles */
+.app {
+  
+}
+
+.user-card {
+  
+}
+
+.user-card:hover {
+  
+}
+
+.user-avatar {
+  
+}
+
+.user-avatar-large {
+  
+}
+
+/* Bootstrap overrides */
+.btn-primary {
+  
+}
+
+.btn-primary:hover {
+  
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-avatar {
+    
+  }
+  
+  .display-4 {
+    
+  }
+}
+
+/* Custom card header styling */
+.card-header {
+  
+}
+
+/* Custom alert styling */
+.alert {
+  
+}
