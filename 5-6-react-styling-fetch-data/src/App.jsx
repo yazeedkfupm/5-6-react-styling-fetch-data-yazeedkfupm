@@ -324,16 +324,53 @@ import UserModal from './components/UserModal'
 
 function App() {
   const [users, setUsers] = useState([])
-
+  const [filteredUsers, setFilteredUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
   useEffect(() => {
-    {/*API fetch logic*/}
+    const fetchUsers = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/users')
+        if (!response.ok) {
+          throw new Error(`Fetch failed: ${response.status} ${response.statusText}`)
+        }
+        const data = await response.json()
+        setUsers(data)
+        setFilteredUsers(data)
+      } catch (err) {
+        setError(err.message || 'An error occurred while fetching users.')
+      } finally {
+        setLoading(false)
+      }
+    }
 
+    fetchUsers()
   }, [])
+useEffect(() => {
+    if (!searchTerm) {
+      setFilteredUsers(users)
+      return
+    }
+
+    const filtered = users.filter((user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    setFilteredUsers(filtered)
+  }, [searchTerm, users])
 
   const handleUserClick = (user) => {
+    setSelectedUser(user)
+    setShowModal(true)
   }
 
   const handleCloseModal = () => {
+    setShowModal(false)
+    setSelectedUser(null)
   }
 
   return (
@@ -346,16 +383,26 @@ function App() {
       </header>
 
       <Container className="mb-4">
-        <SearchBar />
+        <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-        {/* {loading && <Spinner ... />} */}
-        {/* {error && <Alert ...>{error}</Alert>} */}
-        {/* <UserList users={filteredUsers} onUserClick={handleUserClick} /> */}
+        {loading && (
+          <div className="d-flex justify-content-center my-4">
+            <Spinner animation="border" role="status" />
+          </div>
+        )}
+        {error && (
+          <Alert variant="danger" className="my-4">
+            {error}
+          </Alert>
+        )}
+        {!loading && !error && (
+          <UserList users={filteredUsers} onUserClick={handleUserClick} />
+        )}
 
-        <UserModal />
+        <UserModal show={showModal} user={selectedUser} onHide={handleCloseModal} />
       </Container>
 
-      <footer className="mt-5 py-3 bg-light">
+      <footer className="bg-light py-4 mt-5">
         <Container>
           <p className="text-center text-muted mb-0">
             &copy; 2024 User Management Dashboard
